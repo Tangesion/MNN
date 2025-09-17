@@ -1,0 +1,139 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug MNN Test (op/linear)",
+            "type": "cppdbg",
+            "request": "launch",
+            // The program to debug. Assumes it's in the 'build' directory.
+            "program": "${workspaceFolder}/build/run_test.out",
+            // Command-line arguments to pass to the program.
+            "args": [
+                "op/linear",
+                "0",       // type
+                "2",       // precision
+                "1",       // thread
+                "shape=1024,4096" // flag
+                                  // memory
+            ],
+            "stopAtEntry": false,
+            // The working directory when debugging.
+            "cwd": "${workspaceFolder}/build",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ],
+            // Task to run before starting debugging.
+            "preLaunchTask": "Build MNN Test"
+        },
+        {
+            "name": "Debug MNN Test (ConvSpeedInt8Test)",
+            "type": "cppdbg",
+            "request": "launch",
+            // The program to debug. Assumes it's in the 'build' directory.
+            "program": "${workspaceFolder}/build/run_test.out",
+            // Command-line arguments to pass to the program.
+            "args": [
+                "speed/ConvInt8/im2col_gemm",
+            ],
+            "stopAtEntry": false,
+            // The working directory when debugging.
+            "cwd": "${workspaceFolder}/build",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ],
+            // Task to run before starting debugging.
+            "preLaunchTask": "Build MNN Test"
+        },
+        {
+            "name": "Debug MNN Test (speed/LinearInt8Test)",
+            "type": "cppdbg",
+            "request": "launch",
+            // The program to debug. Assumes it's in the 'build' directory.
+            "program": "${workspaceFolder}/build/run_test.out",
+            // Command-line arguments to pass to the program.
+            "args": [
+                "speed/LinearInt8",
+            ],
+            "stopAtEntry": false,
+            // The working directory when debugging.
+            "cwd": "${workspaceFolder}/build",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ],
+            // Task to run before starting debugging.
+            "preLaunchTask": "Build MNN Test"
+        },
+        {
+            "name": "Debug MNN Test (speed/HybridConv)",
+            "type": "cppdbg",
+            "request": "launch",
+            // The program to debug. Assumes it's in the 'build' directory.
+            "program": "${workspaceFolder}/build/run_test.out",
+            // Command-line arguments to pass to the program.
+            "args": [
+                "speed/HybridConv",
+                "0",       // type
+                "2",       // precision low
+                "1",       // thread
+                "shape=1024,4096", // flag
+                "2"              // memory low
+            ],
+            "stopAtEntry": false,
+            // The working directory when debugging.
+            "cwd": "${workspaceFolder}/build",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ],
+            // Task to run before starting debugging.
+            "preLaunchTask": "Build MNN Test"
+        }
+    ]
+}

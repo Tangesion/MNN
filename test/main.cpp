@@ -17,11 +17,19 @@
 #include "TestUtils.h"
 #include "core/Backend.hpp"
 
+int g_argc = 0;
+char** g_argv = nullptr;
+
 int main(int argc, char* argv[]) {
+
+    g_argc = argc;
+    g_argv = argv;
+
     if (argc == 2 && strcmp(argv[1], "--help") == 0) {
         MNN_PRINT("./run_test.out [test_name] [backend] [precision] [thread/mode] [flag]\n");
         MNN_PRINT("\t backend: 0 - CPU (default), 3 - OpenCL\n");
         MNN_PRINT("\t precision: 0 - Normal, 1 - High (default), 2 - Low\n");
+        MNN_PRINT("\t flag: \"shape=1024,4096;...\" \n");
         return 0;
     }
     int precision = (int)MNN::BackendConfig::Precision_High;
