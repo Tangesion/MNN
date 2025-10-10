@@ -13,9 +13,13 @@
 #include <MNN/MNNForwardType.h>
 #include <MNN/expr/Executor.hpp>
 #include <string.h>
+#include "LLMConfigParser.hpp"
+#include "MNN/MNNDefine.h"
 #include "MNNTestSuite.h"
 #include "TestUtils.h"
 #include "core/Backend.hpp"
+
+
 
 int g_argc = 0;
 char** g_argv = nullptr;
@@ -29,17 +33,24 @@ int main(int argc, char* argv[]) {
         MNN_PRINT("./run_test.out [test_name] [backend] [precision] [thread/mode] [flag]\n");
         MNN_PRINT("\t backend: 0 - CPU (default), 3 - OpenCL\n");
         MNN_PRINT("\t precision: 0 - Normal, 1 - High (default), 2 - Low\n");
+        MNN_PRINT("\t thread");
         MNN_PRINT("\t flag: \"shape=1024,4096;...\" \n");
+        MNN_PRINT("\t memory: 0 - Normal, 1 - High, 2 - Low\n");
+        MNN_PRINT("\t LLM config path\n");
         return 0;
     }
     int precision = (int)MNN::BackendConfig::Precision_High;
     int memory = (int)MNN::BackendConfig::Memory_Normal;
     int thread = 1;
     const char* flag = "";
+    
     MNN::BackendConfig config;
     config.precision = (MNN::BackendConfig::PrecisionMode)precision;
     config.memory = (MNN::BackendConfig::MemoryMode)memory;
     auto type = MNN_FORWARD_CPU;
+
+    LLMConfigParser* parser = nullptr;
+
     if (argc > 2) {
         type = (MNNForwardType)atoi(argv[2]);
         FUNC_PRINT(type);
@@ -54,6 +65,11 @@ int main(int argc, char* argv[]) {
         }
         if (argc > 6) {
             memory = atoi(argv[6]);
+        }
+        if (argc > 7) {
+
+            std::string configPath = argv[7];
+            parser = new LLMConfigParser(configPath);
         }
         FUNC_PRINT(thread);
         FUNC_PRINT(precision);
@@ -70,12 +86,12 @@ int main(int argc, char* argv[]) {
         config.memory = (MNN::BackendConfig::MemoryMode)memory;
     }
     int dynamicOption = 0;
-    if (argc > 7) {
+    if (argc > 8) {
         dynamicOption = atoi(argv[7]);
         FUNC_PRINT(dynamicOption);
     }
     bool enableKleidiAI = false;
-    if (argc > 8) {
+    if (argc > 9) {
         enableKleidiAI = atoi(argv[8]) > 0 ? true : false;
         FUNC_PRINT(enableKleidiAI);
     }
@@ -93,6 +109,12 @@ int main(int argc, char* argv[]) {
     scope.Current()->getRuntime().second->setRuntimeHint(hint);
     MNNTestSuite::get()->pStaus.memory = memory;
     MNNTestSuite::get()->pStaus.precision = precision;
+
+    if (parser != nullptr) {
+        auto name = argv[1];
+        return MNNTestSuite::run(name, precision, flag, parser);
+    }
+
     if (argc > 1) {
         auto name = argv[1];
         if (strcmp(name, "all") == 0) {

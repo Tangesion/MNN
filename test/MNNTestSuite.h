@@ -17,6 +17,8 @@
 #include <cstdint>
 
 
+#include "LLMConfigParser.hpp"
+
 
 #if defined(_MSC_VER)
 #include <Windows.h>
@@ -45,6 +47,10 @@ public:
      * fp16 precision should use FP32Converter[3].
      */
     virtual bool run(int precision) = 0;
+
+    virtual bool runLLMLinear(int precision, LLMConfigParser* parser) {
+        return this->run(precision);
+    };
 
 private:
     /** case name */
@@ -89,6 +95,8 @@ public:
      * fp16 precision should use FP32Converter[3].
      */
     static int run(const char* name, int precision, const char* flag = "");
+
+    static int run(const char* name, int precision, const char* flag, LLMConfigParser* parser);
 
 private:
     /** get shared instance */

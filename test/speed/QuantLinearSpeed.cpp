@@ -1,9 +1,12 @@
 
 #include <math.h>
 #include <MNN/expr/ExprCreator.hpp>
+#include "LLMConfigParser.hpp"
+#include "MNN/MNNDefine.h"
 #include "MNNTestSuite.h"
 #include <MNN/AutoTime.hpp>
 #include <MNN/Interpreter.hpp>
+#include <vector>
 #include "CommonOpCreator.hpp"
 
 using namespace MNN::Express;
@@ -11,17 +14,34 @@ using namespace MNN;
 
 class LinearSpeedTest : public MNNTestCase {
 public:
+
     virtual bool run(int precision) override {
+        return true;
+    }
+
+    virtual bool runLLMLinear(int precision, LLMConfigParser* parser) override {
         bool res = true;
-        // Symmetric, Per-channel
-        res = res && testLinear("Linear Symm", 1, 1024, 1024, 8, false, 0);
-        // Asymmetric, Per-channel
-        res = res && testLinear("Linear Asymm", 1, 1024, 1024, 8, true, 0);
-        // Asymmetric, Block-wise
-        res = res && testLinear("Linear Asymm Block64", 1, 1024, 1024, 8, true, 64);
-        // 4-bit version
-        res = res &&
-            testLinear("Linear Asymm Block64 4bit", 1, 1024, 1024, 4, true, 64);
+        std::vector<int> blockSize = {0, 16, 32, 64, 128, 256};
+        std::vector<bool> asymOrSym = {false, true};
+        std::vector<int> nbits ={8};
+
+        for (int i = 0; i < nbits.size(); ++i) {
+            for (int j = 0; j < blockSize.size(); ++j) {
+                for (int k = 0; k < asymOrSym.size(); ++k) {
+                    res = res && testLinear("Q Proj Test", 1, parser->shape.qProj.first, parser->shape.qProj.second, nbits[i], asymOrSym[k], blockSize[j]);
+                    res = res && testLinear("KV Proj Test", 1, parser->shape.kvProj.first, parser->shape.kvProj.second, nbits[i], asymOrSym[k], blockSize[j]);
+                    res = res && testLinear("O Proj Test", 1, parser->shape.oProj.first, parser->shape.oProj.second, nbits[i], asymOrSym[k], blockSize[j]);
+                    res = res && testLinear("Gate Proj Test", 1, parser->shape.gateProj.first, parser->shape.gateProj.second, nbits[i], asymOrSym[k], blockSize[j]);
+                    res = res && testLinear("Up Proj Test", 1, parser->shape.upProj.first, parser->shape.upProj.second, nbits[i], asymOrSym[k], blockSize[j]);
+                    res = res && testLinear("Down Proj Test", 1, parser->shape.downProj.first, parser->shape.downProj.second, nbits[i], asymOrSym[k], blockSize[j]);
+                    res = res && testLinear("LM Proj Test", 1, parser->shape.lmHead.first, parser->shape.lmHead.second, nbits[i], asymOrSym[k], blockSize[j]);
+                    MNN_PRINT("\n");
+                }
+                MNN_PRINT("\n");
+            }
+            MNN_PRINT("\n");
+        
+        }
         return res;
   }
 
@@ -96,7 +116,9 @@ private:
                     wScale[index] = scale_;
                     for (int u = 0; u < blockSize; ++u) {
                         int idx = k * ic + j * blockSize + u;
-                        int q_weight = weightFp32[idx] / scale_;
+                        float quantized_float = roundf(weightFp32[idx] / scale_);
+                        quantized_float = std::max(clampMin, std::min(threshold, quantized_float));
+                        int q_weight = static_cast<int>(quantized_float);
                         newWeightFp32[idx] = q_weight * scale_;
                     }
                 }
@@ -147,8 +169,8 @@ private:
             y->readMap<FLOAT_T>();
         }
         auto time = (float)_t.durationInUs() / 1000.0f;
-        MNN_PRINT("%s input=(%dx%dx%dx%d) output=(%dx%dx%dx%d) avg time = %f\n",
-                    title.c_str(), batch, ic, ih, iw, batch, oc, oh, ow, 1.0 * time / LOOP);
+        MNN_PRINT("%s input=(%dx%dx%dx%d) output=(%dx%dx%dx%d) block size = %d asym = %d avg time = %f\n",
+                    title.c_str(), batch, ic, ih, iw, batch, oc, oh, ow, blockSize, asymmetric, 1.0 * time / LOOP);
         
         return correct;
 

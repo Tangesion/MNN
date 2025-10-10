@@ -74,6 +74,43 @@ int MNNTestSuite::run(const char* key, int precision, const char* flag) {
     return wrongs.size();
 }
 
+int MNNTestSuite::run(const char* key, int precision, const char* flag, LLMConfigParser* parser) {
+    if (key == NULL || strlen(key) == 0)
+        return 0;
+    std::vector<std::pair<std::string, float>> runTimes;
+    auto suite         = MNNTestSuite::get();
+    std::string prefix = key;
+    std::vector<std::string> wrongs;
+    size_t runUnit = 0;
+    for (int i = 0; i < suite->mTests.size(); ++i) {
+        MNNTestCase* test = suite->mTests[i];
+        if (test->name.find(prefix) == 0) {
+            runUnit++;
+            MNN_PRINT("\trunning %s.\n", test->name.c_str());
+            MNN::Timer _t;
+            auto res = test->runLLMLinear(precision, parser);
+            runTimes.emplace_back(std::make_pair(test->name, _t.durationInUs() / 1000.0f));
+            if (!res) {
+                wrongs.emplace_back(test->name);
+            }
+        }
+    }
+    std::sort(runTimes.begin(), runTimes.end(), [](const std::pair<std::string, float>& left, const std::pair<std::string, float>& right) {
+        return left.second < right.second;
+    });
+    for (auto& iter : runTimes) {
+        MNN_PRINT("%s cost time: %.3f ms\n", iter.first.c_str(), iter.second);
+    }
+    if (wrongs.empty()) {
+        MNN_PRINT("√√√ all <%s> tests passed.\n", key);
+    }
+    for (auto& wrong : wrongs) {
+        MNN_PRINT("Error: %s\n", wrong.c_str());
+    }
+    printTestResult(wrongs.size(), runUnit - wrongs.size(), flag);
+    return wrongs.size();
+}
+
 int MNNTestSuite::runAll(int precision, const char* flag) {
     auto suite = MNNTestSuite::get();
     std::vector<std::string> wrongs;
